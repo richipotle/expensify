@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
@@ -60,7 +61,7 @@ class PaymentCreateView(LoginRequiredMixin, CreateView):
             form.add_error(None, e)
             return self.form_invalid(form)
 
-        return super(CreateView, self).form_valid(form)
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse_lazy("payments:detail", kwargs={"pk": self.object.pk})
