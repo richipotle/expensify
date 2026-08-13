@@ -16,9 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.http import HttpResponse
 from django.urls import include, path
 
+
+def healthz(request):
+    """Endpoint público de health check para el monitoreo de Render."""
+    return HttpResponse('ok')
+
+
 urlpatterns = [
+    path('healthz', healthz, name='healthz'),
     path('admin/', admin.site.urls),
     path(
         'accounts/login/',
