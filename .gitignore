@@ -1,0 +1,25 @@
+# Variables de entorno (contiene valores locales, no versionar)
+.env
+
+# Entorno virtual
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store

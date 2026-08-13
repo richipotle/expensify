@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Gestor de Gastos y Pagos{% endblock %}
+
+{% block content %}
+  <h1 class="h3 mb-4">Dashboard</h1>
+
+  <div class="row mb-4 g-3">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card text-bg-primary h-100">
+        <div class="card-body">
+          <h6 class="card-title">Total de gastos</h6>
+          <p class="card-text fs-4 mb-0">{{ resumen.total_gastos }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card text-bg-success h-100">
+        <div class="card-body">
+          <h6 class="card-title">Total pagado</h6>
+          <p class="card-text fs-4 mb-0">{{ resumen.total_pagado }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card text-bg-warning h-100">
+        <div class="card-body">
+          <h6 class="card-title">Total pendiente</h6>
+          <p class="card-text fs-4 mb-0">{{ resumen.total_pendiente }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card text-bg-info h-100">
+        <div class="card-body">
+          <h6 class="card-title">Saldo total activo</h6>
+          <p class="card-text fs-4 mb-0">{{ resumen.saldo_total_activo }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4 g-3">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header">Gastos por estado</div>
+        <div class="card-body">
+          <canvas id="chartEstado"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header">Gastos por categoría</div>
+        <div class="card-body">
+          <canvas id="chartCategoria"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header">Pagos efectuados por mes</div>
+        <div class="card-body">
+          <canvas id="chartMes"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">Últimos 10 gastos</div>
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Título</th>
+                <th scope="col">Monto</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for gasto in ultimos_gastos %}
+                <tr>
+                  <td><a href="{% url 'expenses:detail' pk=gasto.pk %}">{{ gasto.titulo }}</a></td>
+                  <td>{{ gasto.monto_total }}</td>
+                  <td>{{ gasto.fecha }}</td>
+                  <td>
+                    {% if gasto.estado == 'BORRADOR' %}
+                      <span class="badge bg-secondary">{{ gasto.get_estado_display }}</span>
+                    {% elif gasto.estado == 'APROBADO' %}
+                      <span class="badge bg-primary">{{ gasto.get_estado_display }}</span>
+                    {% elif gasto.estado == 'PAGADO' %}
+                      <span class="badge bg-success">{{ gasto.get_estado_display }}</span>
+                    {% elif gasto.estado == 'CANCELADO' %}
+                      <span class="badge bg-danger">{{ gasto.get_estado_display }}</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="text-muted">No hay gastos registrados todavía.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">Últimos 10 pagos</div>
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Gasto</th>
+                <th scope="col">Monto</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pago in ultimos_pagos %}
+                <tr>
+                  <td><a href="{% url 'payments:detail' pk=pago.pk %}">{{ pago.gasto.titulo }}</a></td>
+                  <td>{{ pago.monto }}</td>
+                  <td>{{ pago.fecha }}</td>
+                  <td>
+                    {% if pago.estado == "PENDIENTE" %}
+                      <span class="badge bg-secondary">{{ pago.get_estado_display }}</span>
+                    {% elif pago.estado == "APROBADO" %}
+                      <span class="badge bg-info text-dark">{{ pago.get_estado_display }}</span>
+                    {% elif pago.estado == "EFECTUADO" %}
+                      <span class="badge bg-success">{{ pago.get_estado_display }}</span>
+                    {% elif pago.estado == "CANCELADO" %}
+                      <span class="badge bg-danger">{{ pago.get_estado_display }}</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="text-muted">No hay pagos registrados todavía.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+          integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+          crossorigin="anonymous"></script>
+  <script>
+    const estadoLabels = {{ estado_labels_json|safe }};
+    const estadoData = {{ estado_data_json|safe }};
+    new Chart(document.getElementById('chartEstado'), {
+      type: 'doughnut',
+      data: {
+        labels: estadoLabels,
+        datasets: [{
+          data: estadoData,
+          backgroundColor: ['#6c757d', '#0d6efd', '#198754', '#dc3545'],
+        }],
+      },
+      options: { responsive: true },
+    });
+
+    const categoriaLabels = {{ categoria_labels_json|safe }};
+    const categoriaData = {{ categoria_data_json|safe }};
+    new Chart(document.getElementById('chartCategoria'), {
+      type: 'bar',
+      data: {
+        labels: categoriaLabels,
+        datasets: [{
+          label: 'Monto total',
+          data: categoriaData,
+          backgroundColor: '#0d6efd',
+        }],
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } },
+        plugins: { legend: { display: false } },
+      },
+    });
+
+    const mesLabels = {{ mes_labels_json|safe }};
+    const mesData = {{ mes_data_json|safe }};
+    new Chart(document.getElementById('chartMes'), {
+      type: 'line',
+      data: {
+        labels: mesLabels,
+        datasets: [{
+          label: 'Pagos efectuados',
+          data: mesData,
+          borderColor: '#198754',
+          backgroundColor: 'rgba(25, 135, 84, 0.2)',
+          fill: true,
+          tension: 0.2,
+        }],
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } },
+      },
+    });
+  </script>
+{% endblock %}

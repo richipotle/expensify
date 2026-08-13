@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Gastos - Gestor de Gastos y Pagos{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Gastos</h1>
+    <a href="{% url 'expenses:create' %}" class="btn btn-primary">Nuevo gasto</a>
+  </div>
+
+  {% if gastos %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th scope="col">Título</th>
+            <th scope="col">Monto total</th>
+            <th scope="col">Categoría</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for gasto in gastos %}
+            <tr>
+              <td>{{ gasto.titulo }}</td>
+              <td>{{ gasto.monto_total }}</td>
+              <td>{{ gasto.get_categoria_display }}</td>
+              <td>{{ gasto.fecha }}</td>
+              <td>
+                {% if gasto.estado == 'BORRADOR' %}
+                  <span class="badge bg-secondary">{{ gasto.get_estado_display }}</span>
+                {% elif gasto.estado == 'APROBADO' %}
+                  <span class="badge bg-primary">{{ gasto.get_estado_display }}</span>
+                {% elif gasto.estado == 'PAGADO' %}
+                  <span class="badge bg-success">{{ gasto.get_estado_display }}</span>
+                {% elif gasto.estado == 'CANCELADO' %}
+                  <span class="badge bg-danger">{{ gasto.get_estado_display }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{% url 'expenses:detail' pk=gasto.pk %}" class="btn btn-sm btn-outline-secondary">Ver</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">No hay gastos registrados todavía.</p>
+  {% endif %}
+{% endblock %}

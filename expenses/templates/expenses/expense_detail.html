@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ gasto.titulo }} - Gestor de Gastos y Pagos{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">{{ gasto.titulo }}</h1>
+    <div>
+      {% if gasto.estado == 'BORRADOR' %}
+        <a href="{% url 'expenses:update' pk=gasto.pk %}" class="btn btn-outline-secondary">Editar</a>
+        <a href="{% url 'expenses:delete' pk=gasto.pk %}" class="btn btn-outline-danger">Eliminar</a>
+      {% endif %}
+      <a href="{% url 'expenses:list' %}" class="btn btn-outline-secondary">Volver</a>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-3">Título</dt>
+        <dd class="col-sm-9">{{ gasto.titulo }}</dd>
+
+        <dt class="col-sm-3">Descripción</dt>
+        <dd class="col-sm-9">{{ gasto.descripcion|default:"—" }}</dd>
+
+        <dt class="col-sm-3">Monto total</dt>
+        <dd class="col-sm-9">{{ gasto.monto_total }}</dd>
+
+        <dt class="col-sm-3">Monto pendiente</dt>
+        <dd class="col-sm-9">{{ monto_pendiente }}</dd>
+
+        <dt class="col-sm-3">Categoría</dt>
+        <dd class="col-sm-9">{{ gasto.get_categoria_display }}</dd>
+
+        <dt class="col-sm-3">Fecha</dt>
+        <dd class="col-sm-9">{{ gasto.fecha }}</dd>
+
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">
+          {% if gasto.estado == 'BORRADOR' %}
+            <span class="badge bg-secondary">{{ gasto.get_estado_display }}</span>
+          {% elif gasto.estado == 'APROBADO' %}
+            <span class="badge bg-primary">{{ gasto.get_estado_display }}</span>
+          {% elif gasto.estado == 'PAGADO' %}
+            <span class="badge bg-success">{{ gasto.get_estado_display }}</span>
+          {% elif gasto.estado == 'CANCELADO' %}
+            <span class="badge bg-danger">{{ gasto.get_estado_display }}</span>
+          {% endif %}
+        </dd>
+
+        <dt class="col-sm-3">Creado por</dt>
+        <dd class="col-sm-9">{{ gasto.creado_por }}</dd>
+
+        <dt class="col-sm-3">Creado en</dt>
+        <dd class="col-sm-9">{{ gasto.creado_en }}</dd>
+
+        <dt class="col-sm-3">Actualizado en</dt>
+        <dd class="col-sm-9">{{ gasto.actualizado_en }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    {% if gasto.estado == 'BORRADOR' %}
+      <form method="post" action="{% url 'expenses:approve' pk=gasto.pk %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Aprobar</button>
+      </form>
+    {% endif %}
+
+    {% if gasto.estado == 'BORRADOR' or gasto.estado == 'APROBADO' %}
+      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelarModal">
+        Cancelar
+      </button>
+    {% endif %}
+
+    {% if gasto.estado == 'APROBADO' %}
+      <a href="{% url 'expenses:generate_payment' pk=gasto.pk %}" class="btn btn-success">Generar Pago</a>
+    {% endif %}
+  </div>
+
+  <h2 class="h5">Historial de pagos</h2>
+  {% if pagos %}
+    <div class="table-responsive">
+      <table class="table table-sm table-striped align-middle">
+        <thead>
+          <tr>
+            <th scope="col">Fecha</th>
+            <th scope="col">Monto</th>
+            <th scope="col">Cuenta bancaria</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Referencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pago in pagos %}
+            <tr>
+              <td>{{ pago.fecha }}</td>
+              <td>{{ pago.monto }}</td>
+              <td>{{ pago.cuenta_bancaria }}</td>
+              <td>{{ pago.get_estado_display }}</td>
+              <td>{{ pago.referencia|default:"—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">Este gasto no tiene pagos registrados todavía.</p>
+  {% endif %}
+
+  {% if gasto.estado == 'BORRADOR' or gasto.estado == 'APROBADO' %}
+    <div class="modal fade" id="cancelarModal" tabindex="-1" aria-labelledby="cancelarModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form method="post" action="{% url 'expenses:cancel' pk=gasto.pk %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title" id="cancelarModalLabel">Cancelar gasto</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>¿Está seguro de que desea cancelar el gasto "{{ gasto.titulo }}"? Esta acción no se puede revertir.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+              <button type="submit" class="btn btn-danger">Cancelar gasto</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

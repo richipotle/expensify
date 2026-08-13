@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Pago {{ pago.pk }}{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Pago #{{ pago.pk }}</h1>
+    <a href="{% url 'payments:list' %}" class="btn btn-outline-secondary">Volver al listado</a>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-3">Gasto</dt>
+        <dd class="col-sm-9">
+          {{ pago.gasto.titulo }}
+          <small class="text-muted">
+            (Monto total: {{ pago.gasto.monto_total }} — Monto pendiente: {{ pago.gasto.monto_pendiente }})
+          </small>
+        </dd>
+
+        <dt class="col-sm-3">Cuenta bancaria</dt>
+        <dd class="col-sm-9">{{ pago.cuenta_bancaria }}</dd>
+
+        <dt class="col-sm-3">Monto</dt>
+        <dd class="col-sm-9">{{ pago.monto }}</dd>
+
+        <dt class="col-sm-3">Fecha</dt>
+        <dd class="col-sm-9">{{ pago.fecha }}</dd>
+
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">
+          {% if pago.estado == "PENDIENTE" %}
+            <span class="badge bg-secondary">{{ pago.get_estado_display }}</span>
+          {% elif pago.estado == "APROBADO" %}
+            <span class="badge bg-info text-dark">{{ pago.get_estado_display }}</span>
+          {% elif pago.estado == "EFECTUADO" %}
+            <span class="badge bg-success">{{ pago.get_estado_display }}</span>
+          {% elif pago.estado == "CANCELADO" %}
+            <span class="badge bg-danger">{{ pago.get_estado_display }}</span>
+          {% else %}
+            <span class="badge bg-light text-dark">{{ pago.get_estado_display }}</span>
+          {% endif %}
+        </dd>
+
+        <dt class="col-sm-3">Referencia</dt>
+        <dd class="col-sm-9">{{ pago.referencia|default:"—" }}</dd>
+
+        <dt class="col-sm-3">Notas</dt>
+        <dd class="col-sm-9">{{ pago.notas|default:"—"|linebreaksbr }}</dd>
+
+        <dt class="col-sm-3">Creado por</dt>
+        <dd class="col-sm-9">{{ pago.creado_por }}</dd>
+
+        <dt class="col-sm-3">Creado el</dt>
+        <dd class="col-sm-9">{{ pago.creado_en }}</dd>
+
+        <dt class="col-sm-3">Actualizado el</dt>
+        <dd class="col-sm-9">{{ pago.actualizado_en }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2">
+    {% if pago.estado == "PENDIENTE" %}
+      <form method="post" action="{% url 'payments:approve' pk=pago.pk %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-info">Aprobar</button>
+      </form>
+    {% endif %}
+
+    {% if pago.estado == "APROBADO" %}
+      <form method="post" action="{% url 'payments:execute' pk=pago.pk %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Efectuar</button>
+      </form>
+    {% endif %}
+
+    {% if pago.estado == "PENDIENTE" or pago.estado == "APROBADO" or pago.estado == "EFECTUADO" %}
+      <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelarPagoModal">
+        Cancelar
+      </button>
+    {% endif %}
+
+    {% if pago.estado == "PENDIENTE" %}
+      <a href="{% url 'payments:update' pk=pago.pk %}" class="btn btn-outline-primary">Editar</a>
+      <a href="{% url 'payments:delete' pk=pago.pk %}" class="btn btn-outline-danger">Eliminar</a>
+    {% endif %}
+  </div>
+
+  {% if pago.estado == "PENDIENTE" or pago.estado == "APROBADO" or pago.estado == "EFECTUADO" %}
+    <div class="modal fade" id="cancelarPagoModal" tabindex="-1" aria-labelledby="cancelarPagoModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="cancelarPagoModalLabel">Confirmar cancelación</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            ¿Está seguro de que desea cancelar este pago?
+            {% if pago.estado == "EFECTUADO" %}
+              <p class="mb-0 mt-2 text-muted">
+                El monto será devuelto al saldo de la cuenta bancaria asociada.
+              </p>
+            {% endif %}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+            <form method="post" action="{% url 'payments:cancel' pk=pago.pk %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">Sí, cancelar pago</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

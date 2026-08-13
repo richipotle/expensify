@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {% if object %}Editar Pago{% else %}Nuevo Pago{% endif %}
+{% endblock %}
+
+{% block content %}
+  <h1 class="h3 mb-3">
+    {% if object %}Editar Pago{% else %}Nuevo Pago{% endif %}
+  </h1>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        {% for field in form %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {% if field.field.widget.input_type == "checkbox" %}
+              <div class="form-check">
+                {{ field }}
+              </div>
+            {% elif field.field.widget.input_type %}
+              <input
+                type="{{ field.field.widget.input_type }}"
+                name="{{ field.html_name }}"
+                id="{{ field.id_for_label }}"
+                class="form-control{% if field.errors %} is-invalid{% endif %}"
+                {% if field.value != None %}value="{{ field.value }}"{% endif %}
+                {% if field.field.required %}required{% endif %}
+              >
+            {% else %}
+              {{ field }}
+            {% endif %}
+            {% if field.help_text %}
+              <div class="form-text">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">
+                {{ field.errors|join:", " }}
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Guardar</button>
+          {% if object %}
+            <a href="{% url 'payments:detail' pk=object.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+          {% else %}
+            <a href="{% url 'payments:list' %}" class="btn btn-outline-secondary">Cancelar</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

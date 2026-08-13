@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Cuentas Bancarias{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Cuentas Bancarias</h1>
+    <a href="{% url 'accounts:create' %}" class="btn btn-primary">Nueva Cuenta</a>
+  </div>
+
+  {% if cuentas %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Banco</th>
+            <th>Últimos 4 dígitos</th>
+            <th>Saldo Actual</th>
+            <th>Moneda</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cuenta in cuentas %}
+            <tr>
+              <td>{{ cuenta.nombre }}</td>
+              <td>{{ cuenta.banco }}</td>
+              <td>****{{ cuenta.numero_cuenta }}</td>
+              <td>{{ cuenta.saldo_actual }}</td>
+              <td>{{ cuenta.get_moneda_display }}</td>
+              <td>
+                {% if cuenta.activa %}
+                  <span class="badge bg-success">Activa</span>
+                {% else %}
+                  <span class="badge bg-secondary">Inactiva</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{% url 'accounts:detail' cuenta.pk %}" class="btn btn-sm btn-outline-secondary">Ver</a>
+                <a href="{% url 'accounts:update' cuenta.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">No hay cuentas bancarias registradas todavía.</p>
+  {% endif %}
+{% endblock %}

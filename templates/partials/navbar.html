@@ -1,0 +1,47 @@
+{% load i18n %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'login' %}{% endif %}">
+      Gestor de Gastos y Pagos
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+            aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarMain">
+      {% if user.is_authenticated %}
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'dashboard:home' %}">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'expenses:list' %}">Gastos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'payments:list' %}">Pagos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'accounts:list' %}">Cuentas</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <span class="navbar-text me-3">{{ user.username }}</span>
+          </li>
+          <li class="nav-item">
+            <form method="post" action="{% url 'logout' %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+            </form>
+          </li>
+        </ul>
+      {% else %}
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">Login</a>
+          </li>
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+</nav>
